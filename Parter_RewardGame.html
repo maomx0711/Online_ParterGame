@@ -112,7 +112,13 @@ function cueSeed(cue){
   return cue.id.split("").reduce((s,ch)=>s+ch.charCodeAt(0), 0);
 }
 function toHsluvHex(h,s,l){
-  return hsluv.hsluvToHex([((h%360)+360)%360, clamp(s,0,100), clamp(l,0,100)]);
+  const hue = ((h%360)+360)%360;
+  const sat = clamp(s,0,100);
+  const light = clamp(l,0,100);
+  if (typeof hsluv !== "undefined" && hsluv && typeof hsluv.hsluvToHex === "function"){
+    return hsluv.hsluvToHex([hue, sat, light]);
+  }
+  return `hsl(${hue}, ${sat}%, ${light}%)`;
 }
 
 function identiconHTML(cue){
