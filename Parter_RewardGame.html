@@ -429,7 +429,7 @@ function buildRatingPhase(){
         data: trialData
       });
     } else {
-      let capturedRating = "50";
+      trialData.rating_value = "50";
       tl.push({
         type: jsPsychHtmlButtonResponse,
         stimulus: `${preamble}${sliderHtml}`,
@@ -439,15 +439,15 @@ function buildRatingPhase(){
           const ratingInput = document.querySelector('input[name="rating"]');
           const ratingView = document.getElementById("rv");
           if (ratingInput){
-            capturedRating = ratingInput.value;
+            trialData.rating_value = ratingInput.value;
             ratingInput.addEventListener("input", ()=>{
-              capturedRating = ratingInput.value;
-              if (ratingView) ratingView.textContent = capturedRating;
+              trialData.rating_value = ratingInput.value;
+              if (ratingView) ratingView.textContent = trialData.rating_value;
             });
           }
         },
         on_finish: (data)=>{
-          data.response = {rating: capturedRating};
+          data.response = {rating: trialData.rating_value};
         }
       });
     }
