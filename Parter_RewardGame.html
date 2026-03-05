@@ -81,7 +81,6 @@ const jsPsych = initJsPsych({
 });
 const SurveyHtmlFormPlugin =
   (typeof jsPsychSurveyHtmlForm !== "undefined" && jsPsychSurveyHtmlForm) ||
-  (typeof window !== "undefined" && typeof window.jsPsychSurveyHtmlForm !== "undefined" && window.jsPsychSurveyHtmlForm) ||
   null;
 
 jsPsych.data.addProperties({
@@ -416,8 +415,7 @@ function buildRatingPhase(){
         <p>你认为该线索的平均价值是多少（0-100）？</p>
       </div>`;
     const sliderHtml = `<p>
-          <input type="range" name="rating" min="0" max="100" value="50"
-                 oninput="document.getElementById('rv').textContent=this.value">
+          <input type="range" name="rating" min="0" max="100" value="50">
           <span id="rv">50</span>
         </p>`;
     const trialData = {task:"rating", phase:"rating", cue_id:cid, trial_index:idx+1, total_trials:ratingList.length};
@@ -430,14 +428,25 @@ function buildRatingPhase(){
         data: trialData
       });
     } else {
+      let capturedRating = "50";
       tl.push({
         type: jsPsychHtmlButtonResponse,
         stimulus: `${preamble}${sliderHtml}`,
         choices:["提交"],
         data: trialData,
-        on_finish: (data)=>{
+        on_load: ()=>{
           const ratingInput = document.querySelector('input[name="rating"]');
-          data.response = {rating: ratingInput ? ratingInput.value : ""};
+          const ratingView = document.getElementById("rv");
+          if (ratingInput){
+            capturedRating = ratingInput.value;
+            ratingInput.addEventListener("input", ()=>{
+              capturedRating = ratingInput.value;
+              if (ratingView) ratingView.textContent = capturedRating;
+            });
+          }
+        },
+        on_finish: (data)=>{
+          data.response = {rating: capturedRating};
         }
       });
     }
