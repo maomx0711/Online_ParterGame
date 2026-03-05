@@ -388,6 +388,30 @@ function buildTransferPhase(){
   return tl;
 }
 
+function buildFallbackRatingTrial({preamble, sliderHtml, trialData}){
+  let capturedRating = "50";
+  return {
+    type: jsPsychHtmlButtonResponse,
+    stimulus: `${preamble}${sliderHtml}`,
+    choices:["提交"],
+    data: trialData,
+    on_load: ()=>{
+      const ratingInput = document.querySelector('input[name="rating"]');
+      const ratingView = document.getElementById("rv");
+      if (ratingInput){
+        capturedRating = ratingInput.value;
+        ratingInput.addEventListener("input", ()=>{
+          capturedRating = ratingInput.value;
+          if (ratingView) ratingView.textContent = capturedRating;
+        });
+      }
+    },
+    on_finish: (data)=>{
+      data.response = {rating: capturedRating};
+    }
+  };
+}
+
 function buildRatingPhase(){
   const tl = [];
   tl.push({
@@ -429,27 +453,7 @@ function buildRatingPhase(){
         data: trialData
       });
     } else {
-      trialData.rating_value = "50";
-      tl.push({
-        type: jsPsychHtmlButtonResponse,
-        stimulus: `${preamble}${sliderHtml}`,
-        choices:["提交"],
-        data: trialData,
-        on_load: ()=>{
-          const ratingInput = document.querySelector('input[name="rating"]');
-          const ratingView = document.getElementById("rv");
-          if (ratingInput){
-            trialData.rating_value = ratingInput.value;
-            ratingInput.addEventListener("input", ()=>{
-              trialData.rating_value = ratingInput.value;
-              if (ratingView) ratingView.textContent = trialData.rating_value;
-            });
-          }
-        },
-        on_finish: (data)=>{
-          data.response = {rating: trialData.rating_value};
-        }
-      });
+      tl.push(buildFallbackRatingTrial({preamble, sliderHtml, trialData}));
     }
   });
 
