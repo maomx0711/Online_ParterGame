@@ -79,6 +79,10 @@ const jsPsych = initJsPsych({
     jsPsych.data.get().localSave('csv', `task_${CFG.participant_id}.csv`);
   }
 });
+const SurveyHtmlFormPlugin =
+  (typeof jsPsychSurveyHtmlForm !== "undefined" && jsPsychSurveyHtmlForm) ||
+  (typeof window !== "undefined" && typeof window.jsPsychSurveyHtmlForm !== "undefined" && window.jsPsychSurveyHtmlForm) ||
+  null;
 
 jsPsych.data.addProperties({
   participant_id: CFG.participant_id,
@@ -402,9 +406,7 @@ function buildRatingPhase(){
 
   shuffle(ratingList).forEach((cid,idx)=>{
     const cue = cueById(cid);
-    tl.push({
-      type: jsPsychSurveyHtmlForm,
-      preamble: `<div class="wrap">
+    const preamble = `<div class="wrap">
         <p><b>Trial ${idx+1}/${ratingList.length}</b></p>
         <div class="cue-grid">
           <div class="cue-slot-empty"></div>
@@ -412,15 +414,33 @@ function buildRatingPhase(){
           <div class="cue-slot-empty"></div>
         </div>
         <p>你认为该线索的平均价值是多少（0-100）？</p>
-      </div>`,
-      html: `<p>
+      </div>`;
+    const sliderHtml = `<p>
           <input type="range" name="rating" min="0" max="100" value="50"
                  oninput="document.getElementById('rv').textContent=this.value">
           <span id="rv">50</span>
-        </p>`,
-      button_label:"提交",
-      data:{task:"rating", phase:"rating", cue_id:cid, trial_index:idx+1, total_trials:ratingList.length}
-    });
+        </p>`;
+    const trialData = {task:"rating", phase:"rating", cue_id:cid, trial_index:idx+1, total_trials:ratingList.length};
+    if (SurveyHtmlFormPlugin){
+      tl.push({
+        type: SurveyHtmlFormPlugin,
+        preamble,
+        html: sliderHtml,
+        button_label:"提交",
+        data: trialData
+      });
+    } else {
+      tl.push({
+        type: jsPsychHtmlButtonResponse,
+        stimulus: `${preamble}${sliderHtml}`,
+        choices:["提交"],
+        data: trialData,
+        on_finish: (data)=>{
+          const ratingInput = document.querySelector('input[name="rating"]');
+          data.response = {rating: ratingInput ? ratingInput.value : ""};
+        }
+      });
+    }
   });
 
   return tl;
