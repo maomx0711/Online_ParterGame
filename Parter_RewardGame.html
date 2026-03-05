@@ -415,7 +415,8 @@ function buildRatingPhase(){
         <p>你认为该线索的平均价值是多少（0-100）？</p>
       </div>`;
     const sliderHtml = `<p>
-          <input type="range" name="rating" min="0" max="100" value="50">
+          <input type="range" name="rating" min="0" max="100" value="50"
+                 oninput="document.getElementById('rv').textContent=this.value">
           <span id="rv">50</span>
         </p>`;
     const trialData = {task:"rating", phase:"rating", cue_id:cid, trial_index:idx+1, total_trials:ratingList.length};
